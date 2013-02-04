@@ -26,6 +26,12 @@ Update your Gemfile:
 Bundle:
 
     $ bundle install
+    
+Edit the `Rakefile` of your RubyMotion project and add the following require line:
+
+```ruby
+require 'webstub'
+```
 
 Usage
 -----
