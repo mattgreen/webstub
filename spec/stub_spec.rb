@@ -17,6 +17,19 @@ describe WebStub::Stub do
     lambda { WebStub::Stub.new("invalid", "http://www.yahoo.com/") }.should.raise(ArgumentError)
   end
 
+  describe '#call_count' do
+    it 'increments call count when provided with a matching stub' do
+      @stub.matches? :get, "http://www.yahoo.com/"
+      @stub.call_count.should.equal 1
+    end
+
+    it 'doesnt increment call count when matched against other urls, methods' do
+      @stub.matches? :get, "http://www.google.com/"
+      @stub.matches? :post, "http://www.yahoo.com/"
+      @stub.call_count.should.equal 0
+    end
+  end
+
   describe "#matches?" do
     it "returns true when provided an identical stub" do
       @stub.matches?(:get, "http://www.yahoo.com/").should.be.true
