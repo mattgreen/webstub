@@ -55,10 +55,13 @@ def post(url, body)
   issue_request(request, :string_resp)
 end
 
+WebStubLocks = []
+
 def issue_request(request, response_type)
   result = {}
   queue = NSOperationQueue.alloc.init
   lock = NSConditionLock.alloc.initWithCondition(0)
+  WebStubLocks << lock
 
   NSURLConnection.sendAsynchronousRequest(request,
                                           queue: queue,
