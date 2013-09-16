@@ -145,7 +145,6 @@ module WebStub
       end
 
       if block
-        puts "WE GOT A BLOCK!"
         @with_block = block
       end
 
