@@ -1,7 +1,7 @@
 describe WebStub::API do
   before do
     WebStub::API.reset_stubs
-    
+
     @url = "http://www.example.com/"
     @request = NSURLRequest.requestWithURL(NSURL.URLWithString(@url))
   end
@@ -10,7 +10,7 @@ describe WebStub::API do
     it "returns the newly added stub" do
       WebStub::API.stub_request(:get, @url).should.not.be.nil
     end
-    
+
     before { WebStub::API.disable_network_access! }
     after  { WebStub::API.enable_network_access! }
 
@@ -33,6 +33,20 @@ describe WebStub::API do
         before do
           WebStub::API.stub_request(:post, @url).
             with(body: { :q => "hi" })
+
+          @response = post @url, :q => "hello"
+        end
+
+        it "requires the request body to match" do
+          @response.body.should.be.nil
+        end
+      end
+
+      describe "when a body is set via block" do
+        before do
+          f = lambda {|req| req[:body] == {q: 'hi'}}
+          WebStub::API.stub_request(:post, @url).
+            with {|req| req[:body] == {q: 'hi'}}
 
           @response = post @url, :q => "hello"
         end

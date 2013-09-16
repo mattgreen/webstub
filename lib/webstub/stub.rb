@@ -7,10 +7,11 @@ module WebStub
       raise ArgumentError, "invalid method name" unless METHODS.include? @request_method
 
       @requests = 0
-      
+
       @request_url = canonicalize_url(url)
       @request_headers = nil
       @request_body = nil
+      @with_block = nil
 
       @response_body = ""
       @response_delay = 0.0
@@ -21,6 +22,10 @@ module WebStub
 
     def error?
       ! @response_error.nil?
+    end
+
+    def body
+      @request_body
     end
 
     def matches?(method, url, options={})
@@ -48,6 +53,10 @@ module WebStub
         end
       end
 
+      if @with_block
+        return @with_block.call(options)
+      end
+
       true
     end
 
@@ -73,7 +82,7 @@ module WebStub
       elsif code = options.delete(:code)
         @response_error = NSError.errorWithDomain(NSURLErrorDomain, code: code, userInfo: nil)
       else
-        raise ArgumentError, "to_fail requires either the code or error option" 
+        raise ArgumentError, "to_fail requires either the code or error option"
       end
 
       self
@@ -122,7 +131,7 @@ module WebStub
       to_return(options)
     end
 
-    def with(options)
+    def with(options = {}, &block)
       if body = options[:body]
         @request_body = body
 
@@ -133,6 +142,11 @@ module WebStub
 
       if headers = options[:headers]
         @request_headers = headers
+      end
+
+      if block
+        puts "WE GOT A BLOCK!"
+        @with_block = block
       end
 
       self
