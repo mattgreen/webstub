@@ -1,7 +1,7 @@
 describe WebStub::API do
   before do
     WebStub::API.reset_stubs
-    
+
     @url = "http://www.example.com/"
     @request = NSURLRequest.requestWithURL(NSURL.URLWithString(@url))
   end
@@ -10,7 +10,7 @@ describe WebStub::API do
     it "returns the newly added stub" do
       WebStub::API.stub_request(:get, @url).should.not.be.nil
     end
-    
+
     before { WebStub::API.disable_network_access! }
     after  { WebStub::API.enable_network_access! }
 
@@ -33,6 +33,20 @@ describe WebStub::API do
         before do
           WebStub::API.stub_request(:post, @url).
             with(body: { :q => "hi" })
+
+          @response = post @url, :q => "hello"
+        end
+
+        it "requires the request body to match" do
+          @response.body.should.be.nil
+        end
+      end
+
+      describe "when a body is set via block" do
+        before do
+          f = lambda { |req| req[:body].size == 47 }
+          stub = WebStub::API.stub_request(:post, @url).
+            with &f
 
           @response = post @url, :q => "hello"
         end
@@ -90,6 +104,23 @@ describe WebStub::API do
           before do
             WebStub::API.stub_request(:post, @url).
               with(body: { q: "search" }).
+              to_return(json: { results: ["result 1", "result 2"] })
+
+            @response = post @url, :q => "search"
+          end
+
+          it "returns the correct body" do
+            @response.body.should == '{"results":["result 1","result 2"]}'
+          end
+        end
+      end
+
+      describe "and the request includes a body, checked via block" do
+        describe "of form data" do
+          before do
+            @q_value = 'search'
+            stub = WebStub::API.stub_request(:post, @url).
+              with { |req| req[:body]['q'] == @q_value }.
               to_return(json: { results: ["result 1", "result 2"] })
 
             @response = post @url, :q => "search"
@@ -196,6 +227,22 @@ describe WebStub::API do
         response = get(@url)
 
         response.error.code.should == NSURLErrorNetworkConnectionLost
+      end
+    end
+
+    describe "when the stub must be invoked multiple times" do
+      before do
+        @invocations = 0
+        stub = WebStub::API.stub_request(:post, @url).
+          with { |req| @invocations += 1 }
+
+        @response = post @url, {}
+        @response = post @url, {}
+        @response = post @url, {}
+      end
+
+      it "counts the invocations" do
+        @invocations.should.equal 3
       end
     end
   end
