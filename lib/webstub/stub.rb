@@ -53,7 +53,7 @@ module WebStub
         end
       end
 
-      if @with_block
+      if !options[:initializing] && @with_block
         return @with_block.call(options)
       end
 

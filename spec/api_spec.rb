@@ -44,8 +44,8 @@ describe WebStub::API do
 
       describe "when a body is set via block" do
         before do
-          WebStub::API.stub_request(:post, @url).
-            with {|req| req[:body].size == 47}
+          stub = WebStub::API.stub_request(:post, @url).
+            with { |req| req[:body].size == 47 }
 
           @response = post @url, :q => "hello"
         end
@@ -118,8 +118,8 @@ describe WebStub::API do
         describe "of form data" do
           before do
             @q_value = 'search'
-            WebStub::API.stub_request(:post, @url).
-              with { |req| warn "COMPARING #{req}"; req[:body]['q'] == @q_value }.
+            stub = WebStub::API.stub_request(:post, @url).
+              with { |req| req[:body]['q'] == @q_value }.
               to_return(json: { results: ["result 1", "result 2"] })
 
             @response = post @url, :q => "search"
@@ -226,6 +226,22 @@ describe WebStub::API do
         response = get(@url)
 
         response.error.code.should == NSURLErrorNetworkConnectionLost
+      end
+    end
+
+    describe "when the stub must be invoked multiple times" do
+      before do
+        @invocations = 0
+        stub = WebStub::API.stub_request(:post, @url).
+          with { |req| @invocations += 1 }
+
+        @response = post @url, {}
+        @response = post @url, {}
+        @response = post @url, {}
+      end
+
+      it "counts the invocations" do
+        @invocations.should.equal 3
       end
     end
   end

@@ -8,7 +8,7 @@ module WebStub
       return false unless spec_mode?
       return false unless supported?(request)
 
-      if stub_for(request)
+      if stub_for(request, true)
         return true
       end
 
@@ -82,7 +82,7 @@ module WebStub
     def startLoading
       request = self.request
       client = self.client
-    
+
       unless @stub = self.class.stub_for(self.request)
         error = NSError.errorWithDomain("WebStub", code:0, userInfo:{ NSLocalizedDescriptionKey: "network access is not permitted!"})
         client.URLProtocol(self, didFailWithError:error)
@@ -105,11 +105,12 @@ module WebStub
       @registry ||= Registry.new()
     end
 
-    def self.stub_for(request)
+    def self.stub_for(request, initializing = false)
       options = { headers: request.allHTTPHeaderFields }
       if body = parse_body(request)
         options[:body] = body
       end
+      options[:initializing] = initializing
 
       registry.stub_matching(request.HTTPMethod, request.URL.absoluteString, options)
     end
