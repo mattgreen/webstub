@@ -44,8 +44,9 @@ describe WebStub::API do
 
       describe "when a body is set via block" do
         before do
+          f = lambda { |req| req[:body].size == 47 }
           stub = WebStub::API.stub_request(:post, @url).
-            with { |req| req[:body].size == 47 }
+            with &f
 
           @response = post @url, :q => "hello"
         end
